@@ -1,0 +1,41 @@
+---
+
+- name: 创建{{BIN_DIR}}目录
+  file: 
+    dest={{BIN_DIR}} 
+    state=directory mode=0740
+
+#- name: 下载 CFSSL
+#  get_url: url=https://pkg.cfssl.org/R1.2/{{item.src}} dest={{BIN_DIR}}/{{item.dest}} mode=0540
+#  with_items:
+#  - { src: 'cfssl_linux-amd64', dest: 'cfssl' } 
+#  - { src: 'cfssljson_linux-amd64', dest: 'cfssljson' } 
+#  - { src: 'cfssl-certinfo_linux-amd64', dest: 'cfssl-certinfo' }
+
+- name: 拷贝 CFSSL 二进制执行文件
+  copy: 
+    src={{CFSSL_DIR}}/{{item.src}} 
+    dest={{BIN_DIR}}/{{item.dest}} 
+    mode=0540
+  with_items:
+  - { src: 'cfssl_linux-amd64', dest: 'cfssl' } 
+  - { src: 'cfssljson_linux-amd64', dest: 'cfssljson' } 
+  - { src: 'cfssl-certinfo_linux-amd64', dest: 'cfssl-certinfo' }
+
+- name: 创建/etc/kubernetes/ssl目录
+  file: 
+    dest=/etc/kubernetes/ssl 
+    state=directory mode=0740
+
+- name: 分发CA证书
+  copy: 
+    src={{CA_DIR}}/{{item}} 
+    dest=/etc/kubernetes/ssl/{{item}}
+  with_items:
+  - ca-config.json
+  - ca.csr
+  - ca-csr.json
+  - ca-key.pem
+  - ca.pem 
+
+

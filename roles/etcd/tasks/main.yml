@@ -1,0 +1,58 @@
+---
+
+- name: 创建{{BIN_DIR}}目录
+  file:
+    dest={{ BIN_DIR }} 
+    state=directory mode=0740
+
+- name: 拷贝 ETCD 二进制执行文件
+  copy:
+    src={{ETCD_DIR}}/{{item}} 
+    dest={{BIN_DIR}}/{{item}} 
+    mode=0540
+  with_items:
+  - etcd
+  - etcdctl
+
+- name: 生成etcd-csr.json 证书签名请求
+  template: 
+    src=etcd-csr.json.j2 
+    dest=./etcd-csr.json
+
+- name: 创建/etc/etcd/ssl目录
+  file: 
+    dest=/etc/etcd/ssl 
+    state=directory mode=0740
+
+- name: 生成 etcd 证书和私钥
+  raw: "{{BIN_DIR}}/cfssl gencert -ca=/etc/kubernetes/ssl/ca.pem -ca-key=/etc/kubernetes/ssl/ca-key.pem -config=/etc/kubernetes/ssl/ca-config.json -profile=kubernetes ./etcd-csr.json | {{BIN_DIR}}/cfssljson -bare etcd"
+
+- name: 复制证书到/etc/etcd/ssl目录
+  copy: 
+    remote_src=true 
+    src=./{{item}} 
+    dest=/etc/etcd/ssl/{{item}}
+  with_items:
+  - etcd.pem
+  - etcd-key.pem
+
+- name: 清除临时证书文件
+  raw: "rm -rf etcd*"
+
+- name: 创建ETCD工作目录/var/lib/etcd目录
+  file: 
+    dest=/var/lib/etcd 
+    state=directory mode=0740
+
+- name: 生成etcd.service 证书签名请求
+  template: 
+    src=etcd.service.j2 
+    dest=/etc/systemd/system/etcd.service
+
+- name: 重新加载 systemd
+  command: systemctl daemon-reload
+
+- name: 启动 etcd
+  service:
+    name: etcd
+    state: restarted

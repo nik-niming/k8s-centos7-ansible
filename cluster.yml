@@ -1,0 +1,18 @@
+---
+- hosts: all
+  gather_facts: False
+  remote_user: root
+  become: yes
+  become_method: sudo
+  roles:
+  - common
+
+- hosts: etcd
+  gather_facts: False
+  remote_user: root
+  become: yes
+  become_method: sudo
+  roles:
+  - etcd
+
+
