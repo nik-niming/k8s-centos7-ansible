@@ -31,6 +31,63 @@
   - admin.pem
   - admin-key.pem
 
+- name: 创建kubeconfig文件(1) 设置集群参数
+  shell: "{{BIN_DIR}}/kubectl config set-cluster kubernetes --certificate-authority=/etc/kubernetes/ssl/ca.pem --embed-certs=true --server={{KUBE_APISERVER}}"
+
+- name: 创建kubeconfig文件(2) 设置客户端认证参数
+  shell: "{{BIN_DIR}}/kubectl config set-credentials admin --client-certificate=/etc/kubernetes/ssl/admin.pem --embed-certs=true --client-key=/etc/kubernetes/ssl/admin-key.pem"
+
+- name: 创建kubeconfig文件(3) 设置上下文参数
+  shell: "{{BIN_DIR}}/kubectl config set-context kubernetes --cluster=kubernetes --user=admin"
+ 
+- name: 创建kubeconfig文件(4) 设置默认上下文
+  shell: "{{BIN_DIR}}/kubectl config use-context kubernetes"
+
+- name: 复制kube-apiserver,kube-controller-manager,kube-scheduler,kube-proxy,kubelet二进制执行文件
+  copy:
+    src={{KUBE_SERVER_DIR}}/{{item}} 
+    dest={{BIN_DIR}}/{{item}} 
+    mode=0540
+  with_items:
+  - kube-apiserver
+  - kube-controller-manager
+  - kube-scheduler
+  - kube-proxy
+  - kubelet
+
+- name: 生成kubernetes-csr.json 证书签名请求
+  template: 
+    src=kubernetes-csr.json.j2 
+    dest=./kubernetes-csr.json
+
+- name: 生成kubernetes证书和私钥
+  shell: "{{BIN_DIR}}/cfssl gencert -ca=/etc/kubernetes/ssl/ca.pem -ca-key=/etc/kubernetes/ssl/ca-key.pem -config=/etc/kubernetes/ssl/ca-config.json -profile=kubernetes ./kubernetes-csr.json | {{BIN_DIR}}/cfssljson -bare kubernetes"
+
+- name: 复制kubernetes证书到/etc/kubernetes/ssl目录
+  copy: 
+    remote_src=true 
+    src="{{item}}" 
+    dest=/etc/kubernetes/ssl/{{item}}
+  with_items:
+  - kubernetes.pem
+  - kubernetes-key.pem
+
+- name: 创建kube-apiserver使用的客户端token文件
+  template: 
+    src=token.csv.j2 
+    dest=./token.csv
+
+- name: 复制token.csv证书到/etc/kubernetes目录
+  copy: 
+    remote_src=true 
+    src="token.csv"
+    dest=/etc/kubernetes/token.csv
+
+- name: 创建kube-apiserver.service文件
+  template: 
+    src=kube-apiserver.service.j2 
+    dest=/etc/systemd/system/kube-apiserver.service
+
 - name: 清除临时文件
   file:
     path="{{item}}"
@@ -40,17 +97,41 @@
   - admin-csr.json
   - admin.pem
   - admin-key.pem
+  - kubernetes.csr
+  - kubernetes-csr.json
+  - kubernetes.pem
+  - kubernetes-key.pem
+  - token.csv
+   
+- name: 重新加载 systemd
+  command: systemctl daemon-reload
 
-- name: 创建kubeconfig文件(1) 设置集群参数
-  raw: "{{BIN_DIR}}/kubectl config set-cluster kubernetes --certificate-authority=/etc/kubernetes/ssl/ca.pem --embed-certs=true --server=${KUBE_APISERVER}"
+- name: 启动kube-apiserver
+  service: 
+    name=kube-apiserver
+    state=restarted
 
-- name: 创建kubeconfig文件(2) 设置客户端认证参数
-  raw: "{{BIN_DIR}}/kubectl config set-credentials admin --client-certificate=/etc/kubernetes/ssl/admin.pem --embed-certs=true --client-key=/etc/kubernetes/ssl/admin-key.pem"
+- name: 创建kube-controller-manager.service文件
+  template: 
+    src=kube-controller-manager.service.j2 
+    dest=/etc/systemd/system/kube-controller-manager.service
 
-- name: 创建kubeconfig文件(3) 设置上下文参数
-  raw: "{{BIN_DIR}}/kubectl config set-context kubernetes --cluster=kubernetes --user=admin"
- 
-- name: 创建kubeconfig文件(4) 设置默认上下文
-  raw: "{{BIN_DIR}}/kubectl config use-context kubernetes"
+- name: 启动kube-controller-manager
+  service: 
+    name=kube-controller-manager
+    state=restarted
 
- 
+- name: 创建kube-scheduler.service文件
+  template: 
+    src=kube-scheduler.service.j2 
+    dest=/etc/systemd/system/kube-scheduler.service
+
+- name: 启动kube-scheduler.service
+  service: 
+    name=kube-scheduler
+    state=restarted
+
+
+
+
+
