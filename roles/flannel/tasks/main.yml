@@ -1,0 +1,62 @@
+---
+
+- name: 创建{{BIN_DIR}}目录
+  file:
+    dest={{BIN_DIR}} 
+    state=directory mode=0740
+
+- name: 复制flannel 二进制执行、脚本文件
+  copy:
+    src={{FLANNEL_DIR}}/{{item}} 
+    dest={{BIN_DIR}}/{{item}} 
+    mode=0540
+  with_items:
+  - flanneld
+  - mk-docker-opts.sh
+
+- name: 创建/etc/flanneld/ssl目录
+  file: 
+    dest=/etc/flanneld/ssl
+    state=directory mode=0640
+
+- name: 生成flanneld-csr.json证书签名请求
+  template: 
+    src=flanneld-csr.json.j2 
+    dest=./flanneld-csr.json
+
+- name: 生成flanneld证书和私钥
+  shell: "{{BIN_DIR}}/cfssl gencert -ca=/etc/kubernetes/ssl/ca.pem -ca-key=/etc/kubernetes/ssl/ca-key.pem -config=/etc/kubernetes/ssl/ca-config.json -profile=kubernetes flanneld-csr.json | {{BIN_DIR}}/cfssljson -bare flanneld" 
+
+
+- name: 复制flanneld证书到/etc/flanneld/ssl目录
+  copy: 
+    remote_src=true 
+    src="{{item}}" 
+    dest=/etc/flanneld/ssl/{{item}}
+  with_items:
+  - flanneld.pem
+  - flanneld-key.pem
+
+- name: 生成flannel用于etcd的配置文件
+  template: 
+    src=flanneld-cfg.json.j2 
+    dest=./flanneld-cfg.json
+  run_once: true
+  delegate_to: "{{groups['etcd'][0]}}"
+
+- name: 向etcd写入集群Pod网段信息
+  shell: "{{BIN_DIR}}/etcdctl --endpoints={{ETCD_ENDPOINTS}} --ca-file=/etc/kubernetes/ssl/ca.pem --cert-file=/etc/flanneld/ssl/flanneld.pem --key-file=/etc/flanneld/ssl/flanneld-key.pem set {{FLANNEL_ETCD_PREFIX}}/config < flanneld-cfg.json"
+  delegate_to: "{{ groups['etcd'][0] }}"
+
+- name: 清除临时文件
+  file: 
+    path="{{item}}"
+    state=absent
+  with_items:
+  - flanneld.csr
+  - flanneld-csr.json
+  - flanneld.pem
+  - flanneld-key.pem
+  - flanneld-cfg.json
+
+

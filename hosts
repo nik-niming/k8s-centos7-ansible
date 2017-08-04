@@ -7,6 +7,12 @@ master
 node1
 node2
 
+[flannel]
+master
+node1
+node2
+
+
 [kube-master]
 master
 

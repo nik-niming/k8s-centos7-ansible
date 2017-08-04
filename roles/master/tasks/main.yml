@@ -1,0 +1,56 @@
+---
+
+- name: 创建{{BIN_DIR}}目录
+  file:
+    dest={{BIN_DIR}} 
+    state=directory mode=0740
+
+- name: 复制kubectl二进制执行文件
+  copy:
+    src={{KUBE_CLIENT_DIR}}/{{item}} 
+    dest={{BIN_DIR}}/{{item}} 
+    mode=0540
+  with_items:
+  - kubectl
+  - kubefed
+
+- name: 生成admin-csr.json 证书签名请求
+  template: 
+    src=admin-csr.json.j2 
+    dest=./admin-csr.json
+
+- name: 生成admin证书和私钥
+  shell: "{{BIN_DIR}}/cfssl gencert -ca=/etc/kubernetes/ssl/ca.pem -ca-key=/etc/kubernetes/ssl/ca-key.pem -config=/etc/kubernetes/ssl/ca-config.json -profile=kubernetes ./admin-csr.json | {{BIN_DIR}}/cfssljson -bare admin"
+
+- name: 复制admin证书到/etc/kubernetes/ssl目录
+  copy: 
+    remote_src=true 
+    src="{{item}}" 
+    dest=/etc/kubernetes/ssl/{{item}}
+  with_items:
+  - admin.pem
+  - admin-key.pem
+
+- name: 清除临时文件
+  file:
+    path="{{item}}"
+    state=absent
+  with_items:
+  - admin.csr
+  - admin-csr.json
+  - admin.pem
+  - admin-key.pem
+
+- name: 创建kubeconfig文件(1) 设置集群参数
+  raw: "{{BIN_DIR}}/kubectl config set-cluster kubernetes --certificate-authority=/etc/kubernetes/ssl/ca.pem --embed-certs=true --server=${KUBE_APISERVER}"
+
+- name: 创建kubeconfig文件(2) 设置客户端认证参数
+  raw: "{{BIN_DIR}}/kubectl config set-credentials admin --client-certificate=/etc/kubernetes/ssl/admin.pem --embed-certs=true --client-key=/etc/kubernetes/ssl/admin-key.pem"
+
+- name: 创建kubeconfig文件(3) 设置上下文参数
+  raw: "{{BIN_DIR}}/kubectl config set-context kubernetes --cluster=kubernetes --user=admin"
+ 
+- name: 创建kubeconfig文件(4) 设置默认上下文
+  raw: "{{BIN_DIR}}/kubectl config use-context kubernetes"
+
+ 

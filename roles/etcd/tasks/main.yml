@@ -5,7 +5,7 @@
     dest={{ BIN_DIR }} 
     state=directory mode=0740
 
-- name: 拷贝 ETCD 二进制执行文件
+- name: 复制 ETCD 二进制执行文件
   copy:
     src={{ETCD_DIR}}/{{item}} 
     dest={{BIN_DIR}}/{{item}} 
@@ -25,26 +25,33 @@
     state=directory mode=0740
 
 - name: 生成 etcd 证书和私钥
-  raw: "{{BIN_DIR}}/cfssl gencert -ca=/etc/kubernetes/ssl/ca.pem -ca-key=/etc/kubernetes/ssl/ca-key.pem -config=/etc/kubernetes/ssl/ca-config.json -profile=kubernetes ./etcd-csr.json | {{BIN_DIR}}/cfssljson -bare etcd"
+  shell: "{{BIN_DIR}}/cfssl gencert -ca=/etc/kubernetes/ssl/ca.pem -ca-key=/etc/kubernetes/ssl/ca-key.pem -config=/etc/kubernetes/ssl/ca-config.json -profile=kubernetes etcd-csr.json | {{BIN_DIR}}/cfssljson -bare etcd"
 
 - name: 复制证书到/etc/etcd/ssl目录
   copy: 
     remote_src=true 
-    src=./{{item}} 
+    src="{{item}}" 
     dest=/etc/etcd/ssl/{{item}}
   with_items:
   - etcd.pem
   - etcd-key.pem
 
-- name: 清除临时证书文件
-  raw: "rm -rf etcd*"
+- name: 清除临时文件
+  file:
+    path="{{item}}"
+    state=absent
+  with_items:
+  - etcd.csr
+  - etcd-csr.json
+  - etcd.pem
+  - etcd-key.pem
 
 - name: 创建ETCD工作目录/var/lib/etcd目录
   file: 
     dest=/var/lib/etcd 
     state=directory mode=0740
 
-- name: 生成etcd.service 证书签名请求
+- name: 生成etcd.service服务配置
   template: 
     src=etcd.service.j2 
     dest=/etc/systemd/system/etcd.service

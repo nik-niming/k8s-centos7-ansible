@@ -2,6 +2,8 @@
 CFSSL_DIR: /opt/data/cfssl_linux-amd64 
 CA_DIR: /opt/data/ca
 ETCD_DIR: /opt/data/etcd-v3.1.6-linux-amd64
+FLANNEL_DIR: /opt/data/flannel
+KUBE_CLIENT_DIR: /opt/data/kubernetes/client/bin
 
 # 下载的二进制文件执行目录
 BIN_DIR: /root/local/bin
@@ -31,6 +33,7 @@ ETCD_ENDPOINTS: https://192.168.33.100:2379,https://192.168.33.201:2379,https://
 
 # flanneld 网络配置前缀
 FLANNEL_ETCD_PREFIX: /kubernetes/network
+FLANNEL_ETCD_CONFIG: "{'Network':'{{CLUSTER_CIDR}}', 'SubnetLen': 24, 'Backend': {'Type': 'vxlan}}"
 
 # kubernetes 服务 IP (预分配，一般是 SERVICE_CIDR 中第一个IP)
 CLUSTER_KUBERNETES_SVC_IP: 10.254.0.1
