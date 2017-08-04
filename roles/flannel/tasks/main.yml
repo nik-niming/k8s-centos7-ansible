@@ -46,6 +46,7 @@
 
 - name: 向etcd写入集群Pod网段信息
   shell: "{{BIN_DIR}}/etcdctl --endpoints={{ETCD_ENDPOINTS}} --ca-file=/etc/kubernetes/ssl/ca.pem --cert-file=/etc/flanneld/ssl/flanneld.pem --key-file=/etc/flanneld/ssl/flanneld-key.pem set {{FLANNEL_ETCD_PREFIX}}/config < flanneld-cfg.json"
+  run_once: true
   delegate_to: "{{ groups['etcd'][0] }}"
 
 - name: 清除临时文件
@@ -59,4 +60,15 @@
   - flanneld-key.pem
   - flanneld-cfg.json
 
+- name: 生成flanneld.service服务配置
+  template:
+    src=flanneld.service.j2
+    dest=/etc/systemd/system/flanneld.service
 
+- name: 重新加载 systemd
+  command: systemctl daemon-reload
+
+- name: 启动flanneld
+  service:
+    name=flanneld
+    state=restarted

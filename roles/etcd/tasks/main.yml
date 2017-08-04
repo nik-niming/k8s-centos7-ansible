@@ -61,5 +61,5 @@
 
 - name: 启动 etcd
   service:
-    name: etcd
-    state: restarted
+    name=etcd
+    state=restarted

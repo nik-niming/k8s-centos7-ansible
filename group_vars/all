@@ -1,3 +1,6 @@
+# 集群主机网络主接口(如果使用vagrant，默认eth0为NAT,请调整为eth1)
+HOST_INTERFACE: eth1
+
 # 已下载的第三方软件包，预生成的CA证书，配置文件等目录
 CFSSL_DIR: /opt/data/cfssl_linux-amd64 
 CA_DIR: /opt/data/ca
