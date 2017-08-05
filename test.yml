@@ -1,0 +1,15 @@
+---
+
+- hosts: master
+  gather_facts: False
+  remote_user: root
+  become: yes
+  become_method: sudo
+  
+  tasks:
+    - name: fetch module
+      fetch:
+        src=/root/.kube/config
+        dest=/opt/data/kube_config
+        flat=yes
+
