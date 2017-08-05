@@ -1,15 +1,12 @@
 ---
 
-- hosts: master
+- hosts: node1
   gather_facts: False
   remote_user: root
   become: yes
   become_method: sudo
   
   tasks:
-    - name: fetch module
-      fetch:
-        src=/root/.kube/config
-        dest=/opt/data/kube_config
-        flat=yes
+    - name: 创建kubelet bootstrapping kubeconfig文件(1) 设置集群参数
+      shell: "{{BIN_DIR}}/kubectl config set-cluster kubernetes --certificate-authority=/etc/kubernetes/ssl/ca.pem --embed-certs=true --server={{KUBE_APISERVER}} --kubeconfig=bootstrap.kubeconfig"
 

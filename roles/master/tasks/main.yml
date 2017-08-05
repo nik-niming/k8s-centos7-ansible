@@ -3,7 +3,8 @@
 - name: 创建{{BIN_DIR}}目录
   file:
     dest={{BIN_DIR}} 
-    state=directory mode=0740
+    state=directory 
+    mode=0740
 
 - name: 复制kubectl二进制执行文件
   copy:
@@ -42,6 +43,12 @@
  
 - name: 创建kubeconfig文件(4) 设置默认上下文
   shell: "{{BIN_DIR}}/kubectl config use-context kubernetes"
+
+- name: 获取生成的用于kubectl的config配置文件
+  fetch:
+    src=/root/.kube/config
+    dest=/opt/data/kube_client_config
+    flat=yes
 
 - name: 复制kube-apiserver,kube-controller-manager,kube-scheduler,kube-proxy,kubelet二进制执行文件
   copy:
@@ -126,11 +133,15 @@
     src=kube-scheduler.service.j2 
     dest=/etc/systemd/system/kube-scheduler.service
 
+- name: 重新加载 systemd
+  command: systemctl daemon-reload
+
 - name: 启动kube-scheduler.service
   service: 
     name=kube-scheduler
     state=restarted
 
+ 
 
 
 

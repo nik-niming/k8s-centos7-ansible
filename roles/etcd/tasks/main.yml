@@ -46,10 +46,10 @@
   - etcd.pem
   - etcd-key.pem
 
-- name: 创建ETCD工作目录/var/lib/etcd目录
+- name: 创建ETCD工作目录/var/lib/etcd
   file: 
-    dest=/var/lib/etcd 
-    state=directory mode=0740
+    path=/var/lib/etcd 
+    state=directory
 
 - name: 生成etcd.service服务配置
   template: 

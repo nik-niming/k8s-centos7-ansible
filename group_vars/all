@@ -6,8 +6,10 @@ CFSSL_DIR: /opt/data/cfssl_linux-amd64
 CA_DIR: /opt/data/ca
 ETCD_DIR: /opt/data/etcd-v3.1.6-linux-amd64
 FLANNEL_DIR: /opt/data/flannel
+DOCKER_DIR: /opt/data/docker
 KUBE_CLIENT_DIR: /opt/data/kubernetes/client/bin
 KUBE_SERVER_DIR: /opt/data/kubernetes/server/bin
+KUBE_CLIENT_CONFIG: /opt/data/kube_client_config
 
 # 下载的二进制文件执行目录
 BIN_DIR: /root/local/bin
