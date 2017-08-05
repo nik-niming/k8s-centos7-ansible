@@ -25,7 +25,39 @@
 - name: 创建/etc/kubernetes/ssl目录
   file: 
     dest=/etc/kubernetes/ssl 
-    state=directory mode=0640
+    state=directory
+
+- name: 创建ca-config.json文件
+  template:
+    src=ca-config.json.j2
+    dest=./ca-config.json
+  run_once: true
+  delegate_to: "{{groups['all'][0]}}"
+
+- name: 创建ca-csr.json文件
+  template:
+    src=ca-csr.json.j2
+    dest=./ca-csr.json
+  run_once: true
+  delegate_to: "{{groups['all'][0]}}"
+
+- name: 生成 CA 证书和私钥
+  shell: "{{BIN_DIR}}/cfssl gencert -initca ca-csr.json | {{BIN_DIR}}/cfssljson -bare ca"
+  run_once: true
+  delegate_to: "{{groups['all'][0]}}"
+
+- name: 获取CA证书到ansible master
+  fetch:
+    src=/root/{{item}}
+    dest=/opt/data/ca/{{item}}
+    flat=yes
+  with_items:
+  - ca-config.json
+  - ca.csr
+  - ca-csr.json
+  - ca-key.pem
+  - ca.pem 
+
 
 - name: 分发CA证书
   copy: 
