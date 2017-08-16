@@ -81,6 +81,49 @@ $su -
 #tar -xzvf kubernetes-server-linux-amd64.tar.gz
 
 ```
+在ansible master主机home目录下下载代码，修改相关配置
+```
+#cd /root
+#git clone https://github.com/nik-niming/k8s-centos7-ansible.git
+#cd k8s-centos7-ansible
+#vi group_vars/all   全局配置文件，确保相关位置路径，k8s集群参数设置正确
+```
+关键的全局参数：
 
+集群主机网络主接口(如果使用vagrant，默认eth0为NAT,请调整为eth1)  
+```
+HOST_INTERFACE: eth1    
+```
+
+确保ansible master主机上的文件存储路径正确
+```
+已下载的第三方软件包，预生成的CA证书，配置文件等目录
+CFSSL_DIR: /opt/data/cfssl_linux-amd64 
+CA_DIR: /opt/data/ca
+ETCD_DIR: /opt/data/etcd-v3.1.6-linux-amd64
+FLANNEL_DIR: /opt/data/flannel
+DOCKER_DIR: /opt/data/docker
+KUBE_CLIENT_DIR: /opt/data/kubernetes/client/bin
+KUBE_SERVER_DIR: /opt/data/kubernetes/server/bin 
+KUBE_CLIENT_CONFIG: /opt/data/kube_client_config
+
+下载的二进制文件执行目录(ansible 目标主机存储二进制文件的位置)
+BIN_DIR: /root/local/bin
+```
+
+根据实际虚拟机环境进行ip地址替换
+```
+集群Master IP
+MASTER_IP: 192.168.33.100
+
+etcd 集群所有机器 IP
+ETCD_NODE_IPS: 192.168.33.100 192.168.33.201 192.168.33.202
+
+etcd 集群间通信的IP和端口
+ETCD_NODES: master=https://192.168.33.100:2380,node1=https://192.168.33.201:2380,node2=https://192.168.33.202:2380
+
+etcd 集群服务地址列表
+ETCD_ENDPOINTS: https://192.168.33.100:2379,https://192.168.33.201:2379,https://192.168.33.202:2379
+```
 
 
