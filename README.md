@@ -18,12 +18,18 @@ kube-node2   192.168.33.202  MEM 2G
 ```
 $sudo passwd root
 $su -
-#vi /etc/ssh/sshd_config 
-    确保如下配置选项的开启与关闭
+#vi /etc/ssh/sshd_config   确保如下配置选项的开启与关闭
     PermitRootLogin yes
     PasswordAuthentication yes
     #PasswordAuthentication no
 #systemctl restart sshd
+```
+实现ansible master主机对集群其他主机root帐号的免密连接
+```
+#ssh-keygen    创建ssh key
+#ssh-copy-id root@192.168.33.100
+#ssh-copy-id root@192.168.33.201
+#ssh-copy-id root@192.168.33.202
 ```
 安装ansible
 ```
@@ -31,19 +37,14 @@ $su -
 #yum install -y python-pip  python-netaddr  ansible git
 #pip install --upgrade Jinja2
 ```
-实现ansible master主机对集群其他主机root帐号的免密连接
-```
-#ssh-copy-id root@192.168.33.100
-#ssh-copy-id root@192.168.33.201
-#ssh-copy-id root@192.168.33.202
-```
 配置/opt/data目录下的相关k8s安装资源
 ```
 为了避免每次通过网络下载二进制软件包，这里通过在ansible master主机的/opt/data目录下存放下载好的这些必须文件，在playbook执行过程中将直接通过copy模块实现文件复制，不通过get_url模块在线下载，加快构建速度
 
 [CFSSL]
+#cd /opt/data/
 #mkdir -p /opt/data/cfssl_linux-amd64
-
+#cd /opt/data/cfssl_linux-amd64
 #wget https://pkg.cfssl.org/R1.2/cfssl_linux-amd64
 #chmod +x cfssl_linux-amd64
 
@@ -54,29 +55,30 @@ $su -
 #chmod +x cfssl-certinfo_linux-amd64
 
 [etcd]
-#mkdir -p /opt/data/etcd-v3.1.6-linux-amd64
-
+#cd /opt/data/
 #wget https://github.com/coreos/etcd/releases/download/v3.1.6/etcd-v3.1.6-linux-amd64.tar.gz
 #tar -xvf etcd-v3.1.6-linux-amd64.tar.gz
+#mv etcd-v3.1.6-linux-amd64/ etcd/
 
 [flannel]
+#cd /opt/data/
 #mkdir -p /opt/data/flannel
 #wget https://github.com/coreos/flannel/releases/download/v0.7.1/flannel-v0.7.1-linux-amd64.tar.gz
 #tar -xzvf flannel-v0.7.1-linux-amd64.tar.gz -C /opt/data/flannel
 
 [docker]
-#mkdir -p /opt/data/docker
+#cd /opt/data/
 #wget https://get.docker.com/builds/Linux/x86_64/docker-17.04.0-ce.tgz
 #tar -xvf docker-17.04.0-ce.tgz
 
 [kubernetes-client]
-#mkdir -p /opt/data/kubernetes
-
+#cd /opt/data/
 #wget https://dl.k8s.io/v1.6.2/kubernetes-client-linux-amd64.tar.gz
 #tar -xzvf kubernetes-client-linux-amd64.tar.gz
 
-#wget https://github.com/kubernetes/kubernetes/releases/download/v1.6.2/kubernetes.tar.gz
-#tar -xzvf kubernetes.tar.gz
+[kubernetes-server]
+#wget https://dl.k8s.io/v1.6.2/kubernetes-server-linux-amd64.tar.gz
+#tar -xzvf kubernetes-server-linux-amd64.tar.gz
 
 ```
 
