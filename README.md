@@ -94,5 +94,9 @@ ETCD_ENDPOINTS: https://192.168.33.100:2379,https://192.168.33.201:2379,https://
 ```
 #ansible-playbook -i hosts cluster.yml
 ```
-
+完成基础安装后需要在master或者node节点执行kubectl查看和批准命令添加集群节点，之后继续安装相关功能插件，例如 DNS。
+```
+#/root/local/bin/kubectl get csr
+#/root/local/bin/kubectl certificate approve <csr-id>
+```
 
