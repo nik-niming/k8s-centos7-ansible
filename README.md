@@ -48,7 +48,7 @@ $su -
 #git clone https://github.com/nik-niming/k8s-centos7-ansible.git
 #cd k8s-centos7-ansible
 ```
-为了避免每次通过网络下载二进制软件包，在ansible master主机下执行playbook install_init.yml,会在/opt/data目录下存放下载好的安装过程用到的二进制安装包，在后面集群安装用到的cluster.yml playbook中将直接通过copy模块实现文件复制，不通过get_url模块在线下载，加快构建速度
+根据实际虚拟机环境修改hosts文件中的etcd、master、node主机的IP地址
 
 编辑group_vars/all全局配置文件，确保相关位置路径, url，k8s集群参数设置正确
 ```
@@ -72,7 +72,6 @@ CA_DIR: /opt/data/ca
 BIN_DIR: /root/local/bin
 ...
 ```
-
 根据实际虚拟机环境进行ip地址替换
 ```
 集群Master IP
@@ -86,6 +85,14 @@ ETCD_NODES: master=https://192.168.33.100:2380,node1=https://192.168.33.201:2380
 
 etcd 集群服务地址列表
 ETCD_ENDPOINTS: https://192.168.33.100:2379,https://192.168.33.201:2379,https://192.168.33.202:2379
+```
+为了避免每次通过网络下载二进制软件包，在ansible master主机下执行playbook install_init.yml,会在/opt/data目录下存放下载好的安装过程用到的二进制安装包，在后面集群安装用到的cluster.yml playbook中将直接通过copy模块实现文件复制，不通过get_url模块在线下载，加快构建速度
+```
+#ansible-playbook -i hosts install_init.yml
+```
+执行k8s集群安装
+```
+#ansible-playbook -i hosts cluster.yml
 ```
 
 
