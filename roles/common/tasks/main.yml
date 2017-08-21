@@ -58,6 +58,18 @@
   - ca-key.pem
   - ca.pem 
 
+- name: 清楚临时文件
+  file:
+    path="{{item}}"
+    state=absent
+  with_items:
+  - ca-config.json
+  - ca.csr
+  - ca-csr.json
+  - ca-key.pem
+  - ca.pem
+  run_once: true
+  delegate_to: "{{groups['all'][0]}}"  
 
 - name: 分发CA证书
   copy: 

@@ -1,6 +1,7 @@
-master ansible_ssh_host=192.168.33.100 ansible_ssh_user=root
-node1  ansible_ssh_host=192.168.33.201 ansible_ssh_user=root
-node2  ansible_ssh_host=192.168.33.202 ansible_ssh_user=root
+ansible ansible_ssh_host=192.168.33.10  ansible_ssh_user=root
+master  ansible_ssh_host=192.168.33.100 ansible_ssh_user=root
+node1   ansible_ssh_host=192.168.33.201 ansible_ssh_user=root
+node2   ansible_ssh_host=192.168.33.202 ansible_ssh_user=root
 
 [etcd]
 master

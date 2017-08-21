@@ -2,14 +2,31 @@
 HOST_INTERFACE: eth1
 
 # 已下载的第三方软件包，预生成的CA证书，配置文件等目录
-CFSSL_DIR: /opt/data/cfssl_linux-amd64 
-CA_DIR: /opt/data/ca
-ETCD_DIR: /opt/data/etcd-v3.1.6-linux-amd64
-FLANNEL_DIR: /opt/data/flannel
-DOCKER_DIR: /opt/data/docker
-KUBE_CLIENT_DIR: /opt/data/kubernetes/client/bin
-KUBE_SERVER_DIR: /opt/data/kubernetes/server/bin
-KUBE_CLIENT_CONFIG: /opt/data/kube_client_config
+DATA_DIR: /opt/data
+
+CFSSL_URL: "https://pkg.cfssl.org/R1.2/cfssl_linux-amd64"
+CFSSLJSON_URL: "https://pkg.cfssl.org/R1.2/cfssljson_linux-amd64"
+CFSSLCERTINFO_URL: "https://pkg.cfssl.org/R1.2/cfssl-certinfo_linux-amd64"
+CFSSL_DIR: "{{DATA_DIR}}/cfssl"
+
+CA_DIR: "{{DATA_DIR}}/ca"
+
+ETCD_URL: "https://github.com/coreos/etcd/releases/download/v3.1.6/etcd-v3.1.6-linux-amd64.tar.gz"
+ETCD_DIR: "{{DATA_DIR}}/etcd-v3.1.6-linux-amd64"
+
+FLANNEL_URL: "https://github.com/coreos/flannel/releases/download/v0.7.1/flannel-v0.7.1-linux-amd64.tar.gz"
+FLANNEL_DIR: "{{DATA_DIR}}/flannel"
+
+DOCKER_URL: "https://get.docker.com/builds/Linux/x86_64/docker-17.04.0-ce.tgz"
+DOCKER_DIR: "{{DATA_DIR}}/docker"
+
+KUBE_CLIENT_URL: "https://dl.k8s.io/v1.6.2/kubernetes-client-linux-amd64.tar.gz"
+KUBE_CLIENT_DIR: "{{DATA_DIR}}/kubernetes/client/bin"
+
+KUBE_SERVER_URL: "https://dl.k8s.io/v1.6.2/kubernetes-server-linux-amd64.tar.gz"
+KUBE_SERVER_DIR: "{{DATA_DIR}}/kubernetes/server/bin"
+
+KUBE_CLIENT_CONFIG: "{{DATA_DIR}}/kube_client_config"
 
 # 下载的二进制文件执行目录
 BIN_DIR: /root/local/bin
