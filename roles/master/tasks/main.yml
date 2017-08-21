@@ -6,6 +6,52 @@
     state=directory 
     mode=0740
 
+- name: 复制docker二进制执行文件
+  copy:
+    src={{DOCKER_DIR}}/{{item}} 
+    dest={{BIN_DIR}}/{{item}}
+    mode=0540 
+  with_items:
+  - docker
+  - dockerd 
+  - docker-init 
+  - docker-proxy
+  - docker-runc
+  - docker-containerd
+  - docker-containerd-ctr   
+  - docker-containerd-shim 
+
+- name: 复制docker completion文
+  copy: 
+    src={{DOCKER_DIR}}/completion/bash/{{item}} 
+    dest=/etc/bash_completion.d/{{item}}
+    mode=0440   
+  with_items:  
+  - docker 
+
+- name: 创建/etc/docker目录
+  file:
+    dest=/etc/docker 
+    state=directory  
+
+- name: 使用国内的仓库镜像服务器，同时增加下载的并发数
+  template:
+    src=docker-daemon.json.j2
+    dest=/etc/docker/daemon.json 
+
+- name: 创建docker.service文
+  template:   
+    src=docker.service.j2 
+    dest=/etc/systemd/system/docker.service
+
+- name: 重新加载systemd 
+  command: systemctl daemon-reload  
+
+- name: 启动docker 
+  service: 
+    name=docker 
+    state=restarted  
+
 - name: 复制kubectl二进制执行文件
   copy:
     src={{KUBE_CLIENT_DIR}}/{{item}} 
