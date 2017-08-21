@@ -63,3 +63,5 @@
   service:
     name=etcd
     state=restarted
+    enabled=yes
+

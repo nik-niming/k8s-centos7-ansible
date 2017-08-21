@@ -49,17 +49,6 @@
   run_once: true
   delegate_to: "{{ groups['etcd'][0] }}"
 
-- name: 清除临时文件
-  file: 
-    path="{{item}}"
-    state=absent
-  with_items:
-  - flanneld.csr
-  - flanneld-csr.json
-  - flanneld.pem
-  - flanneld-key.pem
-  - flanneld-cfg.json
-
 - name: 生成flanneld.service服务配置
   template:
     src=flanneld.service.j2
@@ -72,3 +61,17 @@
   service:
     name=flanneld
     state=restarted
+    enabled=yes
+
+- name: 清除临时文件
+  file: 
+    path="{{item}}"
+    state=absent
+  with_items:
+  - flanneld.csr
+  - flanneld-csr.json
+  - flanneld.pem
+  - flanneld-key.pem
+  - flanneld-cfg.json
+
+

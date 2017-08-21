@@ -64,6 +64,7 @@
   service: 
     name=docker
     state=restarted
+    enabled=yes
 
 - name: 复制kubectl二进制文件
   copy:
@@ -134,6 +135,7 @@
   service:
     name=kubelet
     state=restarted
+    enabled=yes
 
 - name: 生成kube-proxy-csr.json证书签名请求
   template:
@@ -189,6 +191,7 @@
   service:
     name=kube-proxy
     state=restarted
+    enabled=yes
 
 - name: 清楚临时文件
   file:
