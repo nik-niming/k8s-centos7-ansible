@@ -27,7 +27,6 @@
 - name: 生成flanneld证书和私钥
   shell: "{{BIN_DIR}}/cfssl gencert -ca=/etc/kubernetes/ssl/ca.pem -ca-key=/etc/kubernetes/ssl/ca-key.pem -config=/etc/kubernetes/ssl/ca-config.json -profile=kubernetes flanneld-csr.json | {{BIN_DIR}}/cfssljson -bare flanneld" 
 
-
 - name: 复制flanneld证书到/etc/flanneld/ssl目录
   copy: 
     remote_src=true 
