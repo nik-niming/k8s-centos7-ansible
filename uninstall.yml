@@ -1,0 +1,29 @@
+---
+
+- hosts: node
+  gather_facts: False
+  remote_user: root
+  become: yes
+  become_method: sudo
+  
+  tasks:
+    - name: 停相关进程
+      service:      
+        name={{item}}
+        state=stop
+        enabled=no
+      with_items:
+      - kubelet
+      - kube-proxy
+      - flanneld
+      - docker
+
+    - name: umount kubelet 挂载的目录
+      command: "mount | grep '/var/lib/kubelet'| awk '{print $3}'|xargs sudo umount"
+
+    - name:  删除kubelet工作目录
+      file:
+        path=/var/lib/kubelet
+        state=absent
+ 
+    
