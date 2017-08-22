@@ -1,9 +1,13 @@
-# 集群主机网络主接口(如果使用vagrant，默认eth0为NAT,请调整为eth1)
-HOST_INTERFACE: eth1
+# 目标主机上存放二进制文件执行的目录
+BIN_DIR: /root/local/bin
 
-# 已下载的第三方软件包，预生成的CA证书，配置文件等目录
+# ansible master主机上存放下载的第三方软件包，预生成的CA证书，配置文件等目录
 DATA_DIR: /opt/data
 
+#集群主机flannel网络主接口(如果使用vagrant，默认eth0为NAT,请调整为eth1)
+HOST_INTERFACE: eth1
+
+### cfssl配置
 CFSSL_URL: "https://pkg.cfssl.org/R1.2/cfssl_linux-amd64"
 CFSSLJSON_URL: "https://pkg.cfssl.org/R1.2/cfssljson_linux-amd64"
 CFSSLCERTINFO_URL: "https://pkg.cfssl.org/R1.2/cfssl-certinfo_linux-amd64"
@@ -11,14 +15,40 @@ CFSSL_DIR: "{{DATA_DIR}}/cfssl"
 
 CA_DIR: "{{DATA_DIR}}/ca"
 
+### etcd配置(需要与ansible inventory文件内容同步)
+ETCD_NODE1: master
+ETCD_NODE1_IP: 192.168.33.100
+ETCD_NODE2: node1
+ETCD_NODE2_IP: 192.168.33.201
+ETCD_NODE3: node2
+ETCD_NODE3_IP: 192.168.33.202
+
 ETCD_URL: "https://github.com/coreos/etcd/releases/download/v3.1.6/etcd-v3.1.6-linux-amd64.tar.gz"
 ETCD_DIR: "{{DATA_DIR}}/etcd-v3.1.6-linux-amd64"
 
+# etcd 集群所有机器IP
+ETCD_NODE_IPS: "{{ETCD_NODE1_IP}} {{ETCD_NODE2_IP}} {{ETCD_NODE3_IP}}"
+# etcd 集群间通信的IP和端口
+ETCD_NODES: "{{ETCD_NODE1}}=https://{{ETCD_NODE1_IP}}:2380,{{ETCD_NODE2}}=https://{{ETCD_NODE2_IP}}:2380,{{ETCD_NODE3}}=https://{{ETCD_NODE3_IP}}:2380"
+# etcd 集群服务地址列表
+ETCD_ENDPOINTS: "https://{{ETCD_NODE1_IP}}:2379,https://{{ETCD_NODE2_IP}}:2379,https://{{ETCD_NODE3_IP}}:2379"
+
+### flanneld配置
 FLANNEL_URL: "https://github.com/coreos/flannel/releases/download/v0.7.1/flannel-v0.7.1-linux-amd64.tar.gz"
 FLANNEL_DIR: "{{DATA_DIR}}/flannel"
 
+FLANNEL_ETCD_PREFIX: /kubernetes/network
+FLANNEL_ETCD_CONFIG: "{'Network':'{{CLUSTER_CIDR}}', 'SubnetLen': 24, 'Backend': {'Type': 'vxlan}}"
+
+### docker配置
 DOCKER_URL: "https://get.docker.com/builds/Linux/x86_64/docker-17.04.0-ce.tgz"
 DOCKER_DIR: "{{DATA_DIR}}/docker"
+
+### k8s配置
+# TLS Bootstrapping 使用的 Token，可以使用命令 head -c 16 /dev/urandom | od -An -t x | tr -d ' ' 生成
+BOOTSTRAP_TOKEN: 41f7e4ba8b7be874fcff18bf5cf41a7c
+
+MASTER_IP: 192.168.33.100
 
 KUBE_CLIENT_URL: "https://dl.k8s.io/v1.6.2/kubernetes-client-linux-amd64.tar.gz"
 KUBE_CLIENT_DIR: "{{DATA_DIR}}/kubernetes/client/bin"
@@ -27,14 +57,6 @@ KUBE_SERVER_URL: "https://dl.k8s.io/v1.6.2/kubernetes-server-linux-amd64.tar.gz"
 KUBE_SERVER_DIR: "{{DATA_DIR}}/kubernetes/server/bin"
 
 KUBE_CLIENT_CONFIG: "{{DATA_DIR}}/kube_client_config"
-
-# 下载的二进制文件执行目录
-BIN_DIR: /root/local/bin
-
-# TLS Bootstrapping 使用的 Token，可以使用命令 head -c 16 /dev/urandom | od -An -t x | tr -d ' ' 生成
-BOOTSTRAP_TOKEN: 41f7e4ba8b7be874fcff18bf5cf41a7c
-
-# 建议用未用的网段 来定义服务网段和Pod 网段
 
 # 服务网段 (Service CIDR），部署前路由不可达，部署后集群内使用 IP:Port 可达
 SERVICE_CIDR: 10.254.0.0/16
@@ -46,21 +68,7 @@ CLUSTER_CIDR: 172.30.0.0/16
 NODE_PORT_RANGE: 8400-9000
 
 # 集群Master IP
-MASTER_IP: 192.168.33.100
 KUBE_APISERVER: https://{{MASTER_IP}}:6443
-
-# etcd 集群所有机器 IP
-ETCD_NODE_IPS: 192.168.33.100 192.168.33.201 192.168.33.202
-
-# etcd 集群间通信的IP和端口
-ETCD_NODES: master=https://192.168.33.100:2380,node1=https://192.168.33.201:2380,node2=https://192.168.33.202:2380
-
-# etcd 集群服务地址列表
-ETCD_ENDPOINTS: https://192.168.33.100:2379,https://192.168.33.201:2379,https://192.168.33.202:2379
-
-# flanneld 网络配置前缀
-FLANNEL_ETCD_PREFIX: /kubernetes/network
-FLANNEL_ETCD_CONFIG: "{'Network':'{{CLUSTER_CIDR}}', 'SubnetLen': 24, 'Backend': {'Type': 'vxlan}}"
 
 # kubernetes 服务 IP (预分配，一般是 SERVICE_CIDR 中第一个IP)
 CLUSTER_KUBERNETES_SVC_IP: 10.254.0.1
