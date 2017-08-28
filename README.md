@@ -72,28 +72,32 @@ CA_DIR: /opt/data/ca
 BIN_DIR: /root/local/bin
 ...
 ```
-根据实际虚拟机环境进行ip地址替换
+根据实际虚拟机环境进行ip地址替换（如果使用操作3台节点组成etcd集群，请修定义相关变量和修改集群地址配置）
 ```
-集群Master IP
+### etcd配置(需要与ansible inventory文件内容同步)
+ETCD_NODE1: master
+ETCD_NODE1_IP: 192.168.33.100
+ETCD_NODE2: node1
+ETCD_NODE2_IP: 192.168.33.201
+ETCD_NODE3: node2
+ETCD_NODE3_IP: 192.168.33.202
+
 MASTER_IP: 192.168.33.100
-
-etcd 集群所有机器 IP
-ETCD_NODE_IPS: 192.168.33.100 192.168.33.201 192.168.33.202
-
-etcd 集群间通信的IP和端口
-ETCD_NODES: master=https://192.168.33.100:2380,node1=https://192.168.33.201:2380,node2=https://192.168.33.202:2380
-
-etcd 集群服务地址列表
-ETCD_ENDPOINTS: https://192.168.33.100:2379,https://192.168.33.201:2379,https://192.168.33.202:2379
 ```
 为了避免每次通过网络下载二进制软件包，在ansible master主机下执行playbook install_init.yml,会在/opt/data目录下存放下载好的安装过程用到的二进制安装包，在后面集群安装用到的cluster.yml playbook中将直接通过copy模块实现文件复制，不通过get_url模块在线下载，加快构建速度
 ```
-#ansible-playbook -i hosts install_init.yml
+#ansible-playbook -i hosts init.yml
 ```
 执行k8s集群安装
 ```
-#ansible-playbook -i hosts cluster.yml
+#ansible-playbook -i hosts install.yml
 ```
+删除集群，清理节点
+```
+#ansible-playbook -i hosts uninstall.yml
+```
+
+
 完成基础安装后需要在master或者node节点执行kubectl查看和批准命令添加集群节点，之后继续安装相关功能插件，例如 DNS。
 ```
 #/root/local/bin/kubectl get csr
