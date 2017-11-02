@@ -47,7 +47,7 @@
     dest=/etc/docker
     state=directory
 
-- name: 使用国内的仓库镜像服务器，同时增加下载的并发数
+- name: 创建docker-daemon.json.j2文件
   template:
     src=docker-daemon.json.j2
     dest=/etc/docker/daemon.json
